@@ -9,8 +9,8 @@
  *    waits 500ms for a response. 
  *    baswi: only one adv packet gives small chance for connection; I send adv packets with default inverval of Zephyr (100msec)
  * 			 during 500 ms (2 sec for testing purposes)   
- * If no response is found esp32 goes to light sleep with ble modem off to conserve power (battery-based application) 
- * 4. If a connection is available the esp32 will connect and send a 2kb json packet (broken down into chunks 
+ * &If no response is found esp32 goes to light sleep with ble modem off to conserve power (battery-based application) 
+ * &4. If a connection is available the esp32 will connect and send a 2kb json packet (broken down into chunks 
  * 5. Receiving python code end needs to re-assemble data do form original packet Deliverables Working Python and ESP-IDF Code (no android)
  */
 
@@ -148,15 +148,14 @@ BT_GATT_SERVICE_DEFINE(hrs_svc,
 	BT_GATT_PRIMARY_SERVICE(BT_UUID_HRS),
 	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_MEASUREMENT, BT_GATT_CHRC_NOTIFY,
 			       BT_GATT_PERM_NONE, NULL, NULL, NULL),
-	//BT_GATT_CCC(hrmc_ccc_cfg_changed,       //baswi; called when real HR central connects
-	BT_GATT_CCC(NULL,       //baswi; called when real HR central connects
-		    HRS_GATT_PERM_DEFAULT),
-	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_BODY_SENSOR, BT_GATT_CHRC_READ,
-			       HRS_GATT_PERM_DEFAULT & GATT_PERM_READ_MASK,
-			       NULL, NULL, NULL), //read_blsc://baswi: Read attribute value from local database storing the result into buffer
-	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_CONTROL_POINT, BT_GATT_CHRC_WRITE,
-			       HRS_GATT_PERM_DEFAULT & GATT_PERM_WRITE_MASK,
-			       NULL, NULL, NULL),
+	//BT_GATT_CCC(hrmc_ccc_cfg_changed,       //called when central part subcribes?
+	BT_GATT_CCC(NULL, HRS_GATT_PERM_DEFAULT), //baswi; changed original function to NULL; without this macro no notifications are sent by peripheral
+//	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_BODY_SENSOR, BT_GATT_CHRC_READ,
+//			       HRS_GATT_PERM_DEFAULT & GATT_PERM_READ_MASK,
+//			       NULL, NULL, NULL), //read_blsc://baswi: Read attribute value from local database storing the result into buffer
+//	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_CONTROL_POINT, BT_GATT_CHRC_WRITE,
+//			       HRS_GATT_PERM_DEFAULT & GATT_PERM_WRITE_MASK,
+//			       NULL, NULL, NULL),
 );
 
 
@@ -180,10 +179,10 @@ static void data_notify(void)
 		printk("chunkSize= %d\n", chunkSize); 
 		memcpy(datapart, (dataToBeSent+nbrBytesAlreadySent), chunkSize); 	//copy chunksize data to local data 
 	    //rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], dataToBeSent, sizeof(dataToBeSent)); 
-		rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], datapart, chunkSize); 
+		rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], datapart, chunkSize); //%%% can I delete the other attributes?
     	    //1st param=Connection object;if NULL notify all peer that have notification enabled via CCC @@@
 			//							 otherwise do a direct notification only the given connection.
-        	//&hrs_svc_attrs – Characteristic or Characteristic Value attribute.
+        	//&hrs_svc_attrs[1] – Characteristic or Characteristic Value attribute. [1]=first? attribute??
         	//&hrm – Pointer to Attribute data.
        	 	//len – Attribute value length.
 		lengthToBeSent -= chunkSize;
@@ -291,7 +290,7 @@ void main(void)
 	bt_conn_auth_cb_register(&auth_cb_display);
 
 	//struct bt_gatt_attr *vnd_ind_attr; //baswi added
-	//vnd_ind_attr = bt_gatt_find_by_uuid(hrs_svc.attrs, hrs_svc.attr_count, 	//baswi added %%%
+	//vnd_ind_attr = bt_gatt_find_by_uuid(hrs_svc.attrs, hrs_svc.attr_count, 	//baswi added
 	//				    NULL);
 
 	while (1) {
