@@ -1,5 +1,5 @@
-/* 
- * Copyright (c) 2020 Intel Corporation. 
+/*
+ * Copyright (c) 2020 Intel Corporation.
  *
  * SPDX-License-Identifier: Apache-2.0
  * Psuedo Code: 
@@ -22,11 +22,12 @@
 #include <bluetooth/conn.h>
 #include <bluetooth/uuid.h>
 #include <bluetooth/gatt.h>
-#include <bluetooth/services/bas.h>
+//#include <bluetooth/services/bas.h>
 //#include <bluetooth/services/hrs.h>
 
-bool baswi_connected = false;
+bool periphConnected = false;
 int err; //used in different functions
+uint16_t CurrentMTUrx, CurrentMTUtx; //used to save current MTU
 
 K_SEM_DEFINE(sem_wakeup, 0, 1);
 
@@ -38,26 +39,47 @@ static const struct bt_data ad[] = {
 		      BT_UUID_16_ENCODE(BT_UUID_DIS_VAL))
 };
 
+//call back called when MTU is updated
+void mtu_updated(struct bt_conn *conn, uint16_t tx, uint16_t rx)
+{
+	printk("Updated MTU: TX: %d RX: %d bytes\n", tx, rx);
+	CurrentMTUrx = rx;
+	CurrentMTUtx = tx;
+}
+
+//baswi added
+static struct bt_gatt_cb gatt_callbacks = {
+	.att_mtu_updated = mtu_updated
+};
+
+
 static void bt_connected(struct bt_conn *conn, uint8_t err)
 {
 	if (err) {
 		printk("Connection failed (err 0x%02x)\n", err);
 	} else {
 		printk("*** Something connected to this peripheral; pairing not necessary?@@@\n");
-		baswi_connected = true;
+		periphConnected = true;
 	}
 }
 
 static void bt_disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	printk("*** The connection was disconnected (reason 0x%02x)\n", reason);
+	periphConnected = false;
 }
 
+static bool le_param_requested(struct bt_conn *conn, struct bt_le_conn_param *param)
+{
+	printk("***LE connection parameter update request*** NOT HANDLED");
+	return false; //not handled
+}
 
 //Register a callback structure for connection events. 
 BT_CONN_CB_DEFINE(conn_callbacks) = {
 	.connected = bt_connected,
 	.disconnected = bt_disconnected,  //supervision timeout is reason 8.
+	.le_param_req = le_param_requested, //baswi inserted
 	//.security_changed = security_changed,
 	//.identity_resolved = identity_resolved,
 	
@@ -95,18 +117,6 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.cancel = auth_cancel,
 };
 
-static void bas_notify(void)
-{
-	uint8_t battery_level = bt_bas_get_battery_level(); 
-
-	battery_level--;
-
-	if (!battery_level) {
-		battery_level = 100U;
-	}
-
-	bt_bas_set_battery_level(battery_level);
-}
 
 //baswi added
 #define GATT_PERM_READ_MASK     (BT_GATT_PERM_READ | \
@@ -150,29 +160,75 @@ BT_GATT_SERVICE_DEFINE(hrs_svc,
 );
 
 
-static void hrs_notify(void)
+static void data_notify(void)
 {
-	static uint8_t heartrate = 90U;
-
-	/* Heartrate measurements simulation */
-	heartrate++;
-	if (heartrate == 160U) {
-		heartrate = 90U;
-	}
-
-//	bt_hrs_notify(heartrate); //baswi
 	int rc;
-	static uint8_t hrm[3];
 
-	hrm[0] = 0x01; //testing
-	hrm[1] = 0x02;
-    hrm[2] = 0x03;
+	char dataToBeSent[] = "1234567890123456789012345678901234567890123456789012345678901234567890 ";
+	char*  datapart = k_malloc(CurrentMTUtx); //allocate memory for datapart
+	printk("CurrentMTUtx= %d\n", CurrentMTUtx);
 
-	rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], &hrm, sizeof(hrm));
+	int16_t lengthToBeSent = sizeof(dataToBeSent); //number of bytes *still* to be sent; can become negative in loop
+												   //for a string this in INCLUDING NULL character
+	uint16_t nbrBytesAlreadySent = 0;
+	while (lengthToBeSent >0) {
+		printk("lengthToBeSent= %d\n", lengthToBeSent); 
+		uint16_t chunkSize = (CurrentMTUtx-4); //@@@4 bytes overhead for L2CAP header
+		if (lengthToBeSent < (CurrentMTUtx-4)) { //if less than CurrentMTUtx bytes need to be sent
+			chunkSize = lengthToBeSent;
+		}
+		printk("chunkSize= %d\n", chunkSize); 
+		memcpy(datapart, (dataToBeSent+nbrBytesAlreadySent), chunkSize); 	//copy chunksize data to local data 
+	    //rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], dataToBeSent, sizeof(dataToBeSent)); 
+		rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], datapart, chunkSize); 
+    	    //1st param=Connection object;if NULL notify all peer that have notification enabled via CCC @@@
+			//							 otherwise do a direct notification only the given connection.
+        	//&hrs_svc_attrs – Characteristic or Characteristic Value attribute.
+        	//&hrm – Pointer to Attribute data.
+       	 	//len – Attribute value length.
+		lengthToBeSent -= chunkSize;
+		nbrBytesAlreadySent += chunkSize;
+	}
+	k_free(datapart);
 
-//baswi	return rc == -ENOTCONN ? 0 : rc;
+/* this was try to use att_notify_cb function
+    struct bt_gatt_notify_params params = {0};
+    const struct bt_gatt_attr *attr = NULL;
+	unsigned char bas_data = 0x0d;
 
+    //@@@attr = &hrs_svc.attrs;
+ 
+    bt_gatt_complete_func_t func;
+    void *user_data; //Notification Value callback user data
+
+	//params.uuid //Notification Attribute UUID type.
+							   // Optional, use to search for an attribute with matching UUID when the attribute object pointer is not known.
+    params.attr = attr; //Notification Attribute object.
+						//Optional if uuid is provided, in this case it will be used as start range to search for the attribute with the given UUID.
+    //params.data = &data->value; //Notification Value data
+	params.data = &bas_data; //Notification Value data
+    params.len = 1; //Notification Value length
+    params.func = NULL; //Notification Value callback@@@
+
+    //if (!conn)
+    //{
+        //LOG_DBG("Notification send to all connected peers");
+        //return bt_gatt_notify_cb(NULL, &params);
+		//printk("BEFORE notify_cb\n");
+		//bt_gatt_notify_cb(NULL, &params); @@@does NOT WORK - probalby params.attr is wrong
+    //}
+    //else if (bt_gatt_is_subscribed(conn, attr, BT_GATT_CCC_NOTIFY))
+    //{
+    //    return bt_gatt_notify_cb(conn, &params);
+    //}
+    //else
+    //{
+    //    return -EINVAL;
+    //}
+    //baswi	return rc == -ENOTCONN ? 0 : rc;
+*/
 }
+
 
 void priv_bt_enable(void) {
 	err = bt_enable(NULL);
@@ -213,54 +269,48 @@ void priv_bt_le_adv_stop(void) {
 
 #define STACKSIZE 512
 
-
 static void thread1_entry(void *p1, void *p2, void *p3)
 {
 	while (1) {
 		k_sem_give(&sem_wakeup); //start advertising
 		printk("TRHEAD1: sleep for 30 seconds\n");
-		k_sleep(K_SECONDS(1)); 
+		k_sleep(K_SECONDS(5)); 
 		//k_sleep(K_MSEC(500));
 	}
 }
-
+K_THREAD_DEFINE(thread1_id, STACKSIZE, thread1_entry, NULL, NULL, NULL,
+		7, K_USER, 0);
 
 
 void main(void)
 {
 	priv_bt_enable();
 	printk("*** Register authentication call backs\n");
+
+	bt_gatt_cb_register(&gatt_callbacks); 	//needed for fi mtu_updated call back function
 	bt_conn_auth_cb_register(&auth_cb_display);
 
-	while (!baswi_connected) {
-		//wait till sem available->send advertisement during x seconds
-		if  (k_sem_take(&sem_wakeup, K_FOREVER) == 0) { //probably sleep iso sem was also OK to guarantee sleeping
-			//priv_bt_enable(); //cannot enable bt, because it is never disabled
-			priv_bt_le_adv_start();
-			k_sleep(K_SECONDS(10));
-			priv_bt_le_adv_stop();
-		};
-		printk("busy wait indicator\n");
-	}
-	//POST: baswi_connected == true
-	printk("STATUS = connected\n");
+	//struct bt_gatt_attr *vnd_ind_attr; //baswi added
+	//vnd_ind_attr = bt_gatt_find_by_uuid(hrs_svc.attrs, hrs_svc.attr_count, 	//baswi added %%%
+	//				    NULL);
 
-
-	/* Implement notification. At the moment there is no suitable way
-	 * of starting delayed work so we do it here
-	 */
 	while (1) {
-		k_sleep(K_SECONDS(1));
+		while (!periphConnected) { //while this peripheral is not connected
+			//wait till sem available->send advertisement during x seconds
+			if  (k_sem_take(&sem_wakeup, K_FOREVER) == 0) { //probably sleep iso sem was also OK to guarantee sleeping
+				priv_bt_le_adv_start();
+				k_sleep(K_SECONDS(2)); //advertise during x seconds
+				priv_bt_le_adv_stop();
+			};
+		}
+		printk("STATUS = connected\n"); //POST: periphConnected == true
+		k_thread_suspend (thread1_id);  //stop advertising
+		k_sleep(K_SECONDS(2)); //give some time for service discovery
 
-		/* Heartrate measurements simulation */
-		hrs_notify(); //baswi: if something other than central_hr is connected, no updates are sent
-
-		/* Battery level simulation */
-		bas_notify();
-	}
-
-
+		while (periphConnected) {
+			k_sleep(K_SECONDS(1));
+			data_notify(); //baswi: if something other than central_hr is connected, no updates are sent
+		}
+		k_thread_resume (thread1_id); //resume advertising
+	}	
 }	
-
-K_THREAD_DEFINE(thread1, STACKSIZE, thread1_entry, NULL, NULL, NULL,
-		7, K_USER, 0);
