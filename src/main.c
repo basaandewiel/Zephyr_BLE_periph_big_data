@@ -58,7 +58,7 @@ static void bt_connected(struct bt_conn *conn, uint8_t err)
 	if (err) {
 		printk("Connection failed (err 0x%02x)\n", err);
 	} else {
-		printk("*** Something connected to this peripheral; pairing not necessary?@@@\n");
+		printk("*** Something connected to this peripheral; pairing not necessary\n");
 		periphConnected = true;
 	}
 }
@@ -143,19 +143,24 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	(BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT) :	\
 	(BT_GATT_PERM_READ | BT_GATT_PERM_WRITE))			\
 
+static void ccc_changed(void)
+{
+	printk("***CCC_changed call back function\n");
+	k_sleep(K_SECONDS(5));
+}
+
 /* Heart Rate Service Declaration */
 BT_GATT_SERVICE_DEFINE(hrs_svc,
 	BT_GATT_PRIMARY_SERVICE(BT_UUID_HRS),
 	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_MEASUREMENT, BT_GATT_CHRC_NOTIFY,
 			       BT_GATT_PERM_NONE, NULL, NULL, NULL),
-	//BT_GATT_CCC(hrmc_ccc_cfg_changed,       //called when central part subcribes?
-	BT_GATT_CCC(NULL, HRS_GATT_PERM_DEFAULT), //baswi; changed original function to NULL; without this macro no notifications are sent by peripheral
-//	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_BODY_SENSOR, BT_GATT_CHRC_READ,
-//			       HRS_GATT_PERM_DEFAULT & GATT_PERM_READ_MASK,
-//			       NULL, NULL, NULL), //read_blsc://baswi: Read attribute value from local database storing the result into buffer
-//	BT_GATT_CHARACTERISTIC(BT_UUID_HRS_CONTROL_POINT, BT_GATT_CHRC_WRITE,
-//			       HRS_GATT_PERM_DEFAULT & GATT_PERM_WRITE_MASK,
-//			       NULL, NULL, NULL),
+	BT_GATT_CCC(ccc_changed, HRS_GATT_PERM_DEFAULT), //Client Characteristic Configuration; called when central part subcribes
+											  //without this macro no notifications are sent by peripheral
+											  //1st param: Configuration changed callback
+	//https://nl.mathworks.com/help/matlab/import_export/work-with-device-characteristics-and-descriptors.html
+	//After connecting to your device, you can interface with it by reading or writing the device characteristics and 
+	//descriptors.
+	//Attributes can vary from read, write, notify, indicate
 );
 
 
@@ -163,12 +168,17 @@ static void data_notify(void)
 {
 	int rc;
 
-	char dataToBeSent[] = "1234567890123456789012345678901234567890123456789012345678901234567890 ";
+	char dataToBeSent[] = "1234567890123456789012345678901234567890123456789012345678901234567890";
 	char*  datapart = k_malloc(CurrentMTUtx); //allocate memory for datapart
 	printk("CurrentMTUtx= %d\n", CurrentMTUtx);
 
-	int16_t lengthToBeSent = sizeof(dataToBeSent); //number of bytes *still* to be sent; can become negative in loop
-												   //for a string this in INCLUDING NULL character
+	//insert <TAG><LENGTH>, so that receiving part can reassemble the data chunks
+	//result is <TAG><LENGTH><data>; this will be split in chunks if necessary
+	//@@@increase length by: <TAG>=1byte; <LENGTH>=4bytes=total length of data to be sent
+	unsigned char TAG=0; //not yet used
+	uint16_t LENGTH = sizeof(dataToBeSent); //number of bytes that follow (the real payload)
+	int16_t lengthToBeSent = sizeof(TAG) + sizeof(LENGTH) + LENGTH; //number of bytes *still* to be sent; can become negative in loop
+												   //for a string this is INCLUDING NULL character
 	uint16_t nbrBytesAlreadySent = 0;
 	while (lengthToBeSent >0) {
 		printk("lengthToBeSent= %d\n", lengthToBeSent); 
@@ -177,16 +187,25 @@ static void data_notify(void)
 			chunkSize = lengthToBeSent;
 		}
 		printk("chunkSize= %d\n", chunkSize); 
-		memcpy(datapart, (dataToBeSent+nbrBytesAlreadySent), chunkSize); 	//copy chunksize data to local data 
-	    //rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], dataToBeSent, sizeof(dataToBeSent)); 
+		
+		if (nbrBytesAlreadySent == 0) { //if first chunck-> insert <tag> and <length>
+			//insert TAG and LENGTH
+			memcpy(datapart, &TAG, sizeof(TAG));
+			memcpy(datapart+sizeof(TAG), &LENGTH, sizeof(LENGTH));
+			memcpy(datapart+sizeof(TAG)+sizeof(LENGTH), (dataToBeSent+nbrBytesAlreadySent), chunkSize-sizeof(TAG)-sizeof(LENGTH)); 	//copy chunksize data to local data 
+			lengthToBeSent -= chunkSize;
+			nbrBytesAlreadySent += chunkSize - sizeof(TAG) - sizeof(LENGTH);
+		} else {
+			memcpy(datapart, (dataToBeSent+nbrBytesAlreadySent), chunkSize); 	//copy chunksize data to local data 
+			lengthToBeSent -= chunkSize;
+			nbrBytesAlreadySent += chunkSize;
+		}
 		rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], datapart, chunkSize); //%%% can I delete the other attributes?
     	    //1st param=Connection object;if NULL notify all peer that have notification enabled via CCC @@@
 			//							 otherwise do a direct notification only the given connection.
         	//&hrs_svc_attrs[1] – Characteristic or Characteristic Value attribute. [1]=first? attribute??
-        	//&hrm – Pointer to Attribute data.
-       	 	//len – Attribute value length.
-		lengthToBeSent -= chunkSize;
-		nbrBytesAlreadySent += chunkSize;
+        	//datapart – Pointer to Attribute data.
+       	 	//chunkSize – Attribute value length.
 	}
 	k_free(datapart);
 
