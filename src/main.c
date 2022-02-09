@@ -168,7 +168,7 @@ static void data_notify(void)
 {
 	int rc;
 
-	char dataToBeSent[] = "1234567890123456789012345678901234567890123456789012345678901234567890";
+	char dataToBeSent[] = "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 	char*  datapart = k_malloc(CurrentMTUtx); //allocate memory for datapart
 	printk("CurrentMTUtx= %d\n", CurrentMTUtx);
 
@@ -176,29 +176,46 @@ static void data_notify(void)
 	//result is <TAG><LENGTH><data>; this will be split in chunks if necessary
 	//@@@increase length by: <TAG>=1byte; <LENGTH>=4bytes=total length of data to be sent
 	unsigned char TAG=0; //not yet used
-	uint16_t LENGTH = sizeof(dataToBeSent); //number of bytes that follow (the real payload)
-	int16_t lengthToBeSent = sizeof(TAG) + sizeof(LENGTH) + LENGTH; //number of bytes *still* to be sent; can become negative in loop
+	unsigned char MoreDataFollows=0; //indicates whether more data chunks follow;
+									 //equals zero for last data chunk, or data consists of only one chunk
+	uint16_t LENGTH = sizeof(dataToBeSent); //length of payload to be sent in bytes
+	int16_t lengthToBeSent = sizeof(TAG) + sizeof(MoreDataFollows) + sizeof(LENGTH) + LENGTH; //number of bytes *still* to be sent; can become negative in loop
+							 //is NOT correct; EVERY chunk sent contains extra byte MoreDataFollows@@@
 												   //for a string this is INCLUDING NULL character
-	uint16_t nbrBytesAlreadySent = 0;
+	uint16_t nbrBytesPayloadAlreadySent = 0;				//nbr of bytes payload that are already sent
 	while (lengthToBeSent >0) {
 		printk("lengthToBeSent= %d\n", lengthToBeSent); 
 		uint16_t chunkSize = (CurrentMTUtx-4); //@@@4 bytes overhead for L2CAP header
-		if (lengthToBeSent < (CurrentMTUtx-4)) { //if less than CurrentMTUtx bytes need to be sent
+		if (lengthToBeSent <= (CurrentMTUtx-4)) { //if <= max chunksize bytes need to be sent
 			chunkSize = lengthToBeSent;
+			MoreDataFollows = 0; //false; necesary for last chunk
+		}
+		else {
+			MoreDataFollows = 1; //true
 		}
 		printk("chunkSize= %d\n", chunkSize); 
 		
-		if (nbrBytesAlreadySent == 0) { //if first chunck-> insert <tag> and <length>
-			//insert TAG and LENGTH
+		if (nbrBytesPayloadAlreadySent == 0) { //if first chunck-> insert TAG and LENGTH and MoreDataFollows
 			memcpy(datapart, &TAG, sizeof(TAG));
 			memcpy(datapart+sizeof(TAG), &LENGTH, sizeof(LENGTH));
-			memcpy(datapart+sizeof(TAG)+sizeof(LENGTH), (dataToBeSent+nbrBytesAlreadySent), chunkSize-sizeof(TAG)-sizeof(LENGTH)); 	//copy chunksize data to local data 
-			lengthToBeSent -= chunkSize;
-			nbrBytesAlreadySent += chunkSize - sizeof(TAG) - sizeof(LENGTH);
+			memcpy(datapart+sizeof(TAG)+sizeof(LENGTH), &MoreDataFollows, sizeof(MoreDataFollows));
+			memcpy(datapart+sizeof(TAG)+sizeof(LENGTH)+sizeof(MoreDataFollows), (dataToBeSent+nbrBytesPayloadAlreadySent), chunkSize-sizeof(TAG)-sizeof(LENGTH)-sizeof(MoreDataFollows)); 	//copy chunksize data to local data 
+			if (MoreDataFollows) {
+				lengthToBeSent -= (chunkSize - sizeof(MoreDataFollows)); //MoreDataFollows byte must be sent also in next chunk
+			} else {
+				lengthToBeSent -= chunkSize;
+			}
+			nbrBytesPayloadAlreadySent = chunkSize - sizeof(TAG) - sizeof(LENGTH) - sizeof(MoreDataFollows);
 		} else {
-			memcpy(datapart, (dataToBeSent+nbrBytesAlreadySent), chunkSize); 	//copy chunksize data to local data 
-			lengthToBeSent -= chunkSize;
-			nbrBytesAlreadySent += chunkSize;
+			//only insert MoreDataFollows byte in front of payload
+			memcpy(datapart, &MoreDataFollows, sizeof(MoreDataFollows));
+			memcpy(datapart+sizeof(MoreDataFollows), (dataToBeSent+nbrBytesPayloadAlreadySent), chunkSize); 	//copy chunksize data to local data 
+			if (MoreDataFollows) {
+				lengthToBeSent -= (chunkSize - sizeof(MoreDataFollows)); //MoreDataFollows byte must be sent also in next chunk
+			} else {
+				lengthToBeSent -= chunkSize;
+			}
+			nbrBytesPayloadAlreadySent += (chunkSize - sizeof(MoreDataFollows));
 		}
 		rc = bt_gatt_notify(NULL, &hrs_svc.attrs[1], datapart, chunkSize); //%%% can I delete the other attributes?
     	    //1st param=Connection object;if NULL notify all peer that have notification enabled via CCC @@@
