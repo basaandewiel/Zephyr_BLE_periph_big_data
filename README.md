@@ -1,5 +1,8 @@
-# Zephyr_BT_periph
+# Zephyr_BT_periph_big_data
 Bluetooth peripheral (server side) - Zephyr - sends big data splitted into chunks
+This application can be used together with
+* Zephyr_BT_central_big_data
+* Python_BT_central_big_data
 
 # What is does
 It sends periodic bluetooth advertisements; when nothing is connected within x seconds, advertising stops and device goes into sleep.
