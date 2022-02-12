@@ -18,3 +18,7 @@ So two extra bytes are inserted before the payload in each chunk sent.
 The <MoreDataFollows> is comparable with the MoreFragment flag in IPv4.
 
 When the other device disconnects, it starts sending periodic advertisements again.
+  
+
+# Building and running
+For how to build and run, see https://basaandewiel.github.io/Zephyr_bluetooth_programming/
