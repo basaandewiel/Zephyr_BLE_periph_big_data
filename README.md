@@ -1,8 +1,8 @@
 # Zephyr_BLE_periph_big_data
 Bluetooth peripheral (server side) - Zephyr - sends big data splitted into chunks
 This application can be used together with
-* Zephyr_BT_central_big_data
-* Python_BT_central_big_data
+* Zephyr_BLE_central_big_data, or
+* Python_BLE_central_big_data
 
 # What is does
 The peripheral sends BLE advertising packets during a certain amount of time every 100msec (default inverval of Zephyr).
