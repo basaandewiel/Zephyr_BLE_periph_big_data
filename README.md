@@ -1,5 +1,5 @@
 # Zephyr_BLE_periph_big_data
-Bluetooth peripheral (server side) - Zephyr - sends big data splitted into chunks
+Bluetooth peripheral (server side) - Zephyr - sends big amount of data splitted into chunks
 This application can be used together with
 * https://github.com/basaandewiel/Zephyr_BLE_central_big_data, or
 * https://github.com/basaandewiel/Python_BLE_central_big_data
