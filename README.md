@@ -5,10 +5,12 @@ This application can be used together with
 * Python_BT_central_big_data
 
 # What is does
-It sends periodic bluetooth advertisements; when nothing is connected within x seconds, advertising stops and device goes into sleep.
+The peripheral sends BLE advertising packets during a certain amount of time every 100msec (default inverval of Zephyr).
+* When there is BLE device connected after this period of sending advertisements, the peripheral goes into sleep mode for a certain period of time to conserve power.
+* When the sleep period is over, it starts again sending BLE advertisements during a certain amount of time.
+ * etc. etc.
 
-When another device connects, it starts sending (test)data every second. This test data is > MTU size, so it is sent in chunks. The size of the chunks
-depends on the negotiated MTU.
+When another BLE device connects, it starts sending (test)data every second. The size of this test data is > MTU size, so it has to be split into chunks. The size of the chunks depends on the negotiated MTU.
 
 For the receiving side to be able to reassemble the data sent, extra data is inserted: 
 * <ChunkNbr> number of the Chunk starting at 0 (size is one byte)
