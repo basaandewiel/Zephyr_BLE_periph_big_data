@@ -1,4 +1,4 @@
-# Zephyr_BT_periph_big_data
+# Zephyr_BLE_periph_big_data
 Bluetooth peripheral (server side) - Zephyr - sends big data splitted into chunks
 This application can be used together with
 * Zephyr_BT_central_big_data
