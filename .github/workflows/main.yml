@@ -8,7 +8,7 @@ jobs:
 #    container: zephyrprojectrtos/ci:v0.24.5
     strategy:
       matrix:
-        sample: [blinky, bme280, button]
+        sample: [blinky]
         target: [circuitdojo_feather_nrf9160_ns]
     steps:
       - uses: grandcentrix/actions-zephyr-sdk@latest
