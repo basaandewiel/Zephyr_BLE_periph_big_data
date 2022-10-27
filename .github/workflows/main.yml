@@ -2,10 +2,14 @@ name: Build
 
 on: [push, pull_request, workflow_dispatch]
 
+uses: grandcentrix/actions-zephyr-sdk@latest
+  with:
+    url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.4/zephyr-toolchain-arm-0.11.4-setup.run
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: zephyrprojectrtos/ci:v0.24.5
+#    container: zephyrprojectrtos/ci:v0.24.5
     strategy:
       matrix:
         sample: [accelerometer, active_sleep, at_client, battery, blinky, bme280, button, deep_sleep, external_flash, external_rtc, external_rtc_time_sync, gps, led_pwm, mfw_update, nanopb, sms]
