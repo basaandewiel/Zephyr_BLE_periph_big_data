@@ -29,7 +29,7 @@ jobs:
              echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Initialize
-        working-directory: nfed
+  #      working-directory: nfed
         run: |
           pip3 install -U west
           west init -l .
@@ -37,7 +37,7 @@ jobs:
           pip3 install -r ../zephyr/scripts/requirements-base.txt
 
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
-        working-directory: nfed
+   #     working-directory: nfed
         run: |
           west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
           mkdir -p .out
@@ -48,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: nfed_${{ steps.vars.outputs.branch }}_${{ steps.vars.outputs.sha_short }}
-          path: nfed/.out/
+          path: .out/
