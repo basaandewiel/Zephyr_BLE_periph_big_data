@@ -31,7 +31,8 @@ jobs:
       - name: Initialize
   #      working-directory: nfed
         run: |
-          pip3 install -U west
+#          pip3 install -U west
+          pip3 install west
           west init -l .
           west update
           pip3 install -r ../zephyr/scripts/requirements-base.txt
