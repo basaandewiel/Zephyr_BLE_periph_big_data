@@ -14,6 +14,7 @@ jobs:
       - uses: grandcentrix/actions-zephyr-sdk@latest
         with:
           url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.4/zephyr-toolchain-arm-0.11.4-setup.run
+          toolchains: aarch64-zephyr-elf,mips-zephyr-elf
 
       - name: Checkout
         uses: actions/checkout@v2
