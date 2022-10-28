@@ -36,7 +36,7 @@ jobs:
           west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 ncs
           cd ncs
           west update
-          pip3 install -r ../zephyr/scripts/requirements-base.txt
+      #    pip3 install -r ../zephyr/scripts/requirements-base.txt
 
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         working-directory: nfed
