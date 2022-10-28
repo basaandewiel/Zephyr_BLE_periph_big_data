@@ -1,6 +1,7 @@
 name: Build
 
-on: [push, pull_request, workflow_dispatch]
+#on: [push, pull_request, workflow_dispatch]
+on: workflow_dispatch
 
 jobs:
   build:
@@ -14,7 +15,7 @@ jobs:
       - uses: grandcentrix/actions-zephyr-sdk@latest
         with:
           url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.4/zephyr-toolchain-arm-0.11.4-setup.run
-          toolchains: aarch64-zephyr-elf,mips-zephyr-elf
+          toolchains: aarch64-zephyr-elf,x86_64-zephyr-elf
 
       - name: Checkout
         uses: actions/checkout@v2
