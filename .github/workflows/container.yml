@@ -41,7 +41,8 @@ jobs:
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
   #      working-directory: nfed
         run: |
-          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
+          west build -b qemu_x86 samples/hello_world
+#          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
           mkdir -p .out
           cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
           cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
