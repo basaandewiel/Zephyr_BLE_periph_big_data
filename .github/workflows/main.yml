@@ -1,4 +1,4 @@
-name: Build
+name: BuildViaZephyrAction
 
 #on: [push, pull_request, workflow_dispatch]
 on: workflow_dispatch
@@ -6,7 +6,6 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-#    container: zephyrprojectrtos/ci:v0.24.5
     strategy:
       matrix:
         sample: [blinky]
@@ -14,25 +13,32 @@ jobs:
     steps:
       - uses: grandcentrix/actions-zephyr-sdk@latest
         with:
-          url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.11.4/zephyr-toolchain-arm-0.11.4-setup.run
-          toolchains: aarch64-zephyr-elf,x86_64-zephyr-elf
+          url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.14.2/zephyr-sdk-0.14.2_linux-x86_64_minimal.tar.gz
+          toolchains: x86_64-zephyr-elf
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           path: nfed
 
-      - name: Set variables
-        working-directory: nfed
-        id: vars
-        run: |
-             echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
-             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+#      - name: Set variables
+#        working-directory: nfed
+#        id: vars
+#        run: |
+#            echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
+#             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Initialize
         working-directory: nfed
         run: |
+          echo "***PWD"
+          pwd
+          echo "***LS"
+          ls
+          echo "***west"
+          west
+          echo "***pip3 isntall west"
           pip3 install west
           west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 ncs
           cd ncs
