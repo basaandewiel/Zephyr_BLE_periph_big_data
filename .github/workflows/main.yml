@@ -26,6 +26,7 @@ jobs:
       - name: InstallWestWorkspace
 #        working-directory: nfed
         run: |
+          cd
           echo "***PWD"
           pwd
           echo "***LS"
@@ -46,6 +47,10 @@ jobs:
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         working-directory: nfed
         run: |
+          echo "***PWD"
+          pwd
+          echo "***LS"
+          ls
           west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
           mkdir -p .out
           cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
