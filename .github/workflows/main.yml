@@ -24,7 +24,7 @@ jobs:
 #             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: InstallWestWorkspace
-        working-directory: nfed
+#        working-directory: nfed
         run: |
           echo "***PWD"
           pwd
