@@ -41,13 +41,12 @@ jobs:
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         run: |
           echo "*** BUILD"
+          echo "*** LS"
+          ls -l
           cd nfed
           echo "*** LS"
           ls -l
-          working-directory: nfed
-          west build -b qemu_x86 -s Zephyr_BLE_periph_big_data
-          echo "*** LS"
-          ls -l
+          west build -b qemu_x86
           echo "*** RUN"
           west build -t run
 #         west build -b qemu_x86 samples/hello_world
