@@ -37,14 +37,19 @@ jobs:
           export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
           export ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-0.15.1/
           cd zephyr
+          echo "*** BUILD"
           west build -b qemu_x86 samples/hello_world
+          echo "*** LS"
+          ls -l
+          echo "*** RUN"
+          west build -t run
 #          mkdir -p .out
 #          cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
 #          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
 
-      - uses: GuillaumeFalourd/assert-command-line-output@v2
-        with:
-          command_line: west build -t run
-          contains: ello
-          expected_result: PASSED
+#      - uses: GuillaumeFalourd/assert-command-line-output@v2
+#        with:
+#          command_line: west build -t run
+#          contains: ello
+#          expected_result: PASSED
 
