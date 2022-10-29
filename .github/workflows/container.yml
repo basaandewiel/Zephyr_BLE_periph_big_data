@@ -12,7 +12,12 @@ jobs:
         target: [circuitdojo_feather_nrf9160_ns]
     steps:
  #     - name: Checkout
- #       uses: actions/checkout@v2
+ #      - uses: GuillaumeFalourd/assert-command-line-output@v2
+ #        with:
+ #         command_line: ls -lha
+ #         contains: runner
+ #         expected_result: PASSED
+#       uses: actions/checkout@v2
  #       with:
  #         fetch-depth: 0
  #         path: nfed
@@ -23,12 +28,11 @@ jobs:
 #        run: |
 #             echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
 #             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
+#
   #      working-directory: nfed
 #          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         run: |
-          sudo su
           west init
           echo "*** PWD"
           pwd
@@ -36,7 +40,7 @@ jobs:
           ls -l
           west update
           export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
-          export ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk/
+          export ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-0.15.1/
           cd zephyr
           west build -b qemu_x86 samples/hello_world
           mkdir -p .out
