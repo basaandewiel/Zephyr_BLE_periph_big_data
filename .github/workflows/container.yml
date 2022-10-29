@@ -23,10 +23,6 @@ jobs:
       - name: Install Connect SDK
         run: |
           west init
-          echo "*** PWD"
-          pwd
-          echo "*** LS"
-          ls -l
           west update
           cd zephyr
 
@@ -48,15 +44,8 @@ jobs:
           ls -l
           west build -b qemu_x86
           echo "*** RUN"
-          west build -t run
+#          west build -t run #must implement BT serial first
 #         west build -b qemu_x86 samples/hello_world
 #          mkdir -p .out
 #          cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
 #          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
-
-#      - uses: GuillaumeFalourd/assert-command-line-output@v2
-#        with:
-#          command_line: west build -t run
-#          contains: ello
-#          expected_result: PASSED
-
