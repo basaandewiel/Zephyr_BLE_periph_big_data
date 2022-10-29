@@ -43,7 +43,7 @@ jobs:
 #          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
 
       - uses: GuillaumeFalourd/assert-command-line-output@v2
-         with:
+        with:
           command_line: west build -t run
           contains: ello
           expected_result: PASSED
