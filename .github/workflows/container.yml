@@ -11,18 +11,18 @@ jobs:
         sample: [blinky]
         target: [circuitdojo_feather_nrf9160_ns]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          path: nfed
-
-      - name: Set variables
-        working-directory: nfed
-        id: vars
-        run: |
-             echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
-             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+ #     - name: Checkout
+ #       uses: actions/checkout@v2
+ #       with:
+ #         fetch-depth: 0
+ #         path: nfed
+#
+#      - name: Set variables
+#        working-directory: nfed
+#        id: vars
+#        run: |
+#             echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
+#             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
   #      working-directory: nfed
 #          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
