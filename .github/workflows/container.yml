@@ -30,6 +30,8 @@ jobs:
         run: |
           sudo su
           west init
+          pwd
+          ls -l
           cd zephyr
           west build -b qemu_x86 samples/hello_world
           mkdir -p .out
