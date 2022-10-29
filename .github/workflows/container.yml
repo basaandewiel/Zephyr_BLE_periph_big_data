@@ -1,4 +1,4 @@
-name: Build
+name: useZephyrContainer
 
 on: [workflow_dispatch]
 
