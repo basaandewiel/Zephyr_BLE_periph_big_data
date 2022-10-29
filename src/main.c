@@ -11,8 +11,7 @@
  * The central part that is reassembling the chunks is also available as a Python script.
  */
 
-//#include <zephyr.h>
-#include <sys/printk.h>
+//#include <sys/printk.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
