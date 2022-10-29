@@ -12,11 +12,6 @@ jobs:
         target: [circuitdojo_feather_nrf9160_ns]
     steps:
  #     - name: Checkout
- #      - uses: GuillaumeFalourd/assert-command-line-output@v2
- #        with:
- #         command_line: ls -lha
- #         contains: runner
- #         expected_result: PASSED
 #       uses: actions/checkout@v2
  #       with:
  #         fetch-depth: 0
@@ -43,7 +38,13 @@ jobs:
           export ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-0.15.1/
           cd zephyr
           west build -b qemu_x86 samples/hello_world
-          mkdir -p .out
-          cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
-          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
+#          mkdir -p .out
+#          cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
+#          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
+
+      - uses: GuillaumeFalourd/assert-command-line-output@v2
+         with:
+          command_line: west build -t run
+          contains: ello
+          expected_result: PASSED
 
