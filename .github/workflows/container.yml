@@ -42,6 +42,9 @@ jobs:
 #          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         run: |
+          sudo su
+          west init
+          cd zephyr
           west build -b qemu_x86 samples/hello_world
           mkdir -p .out
           cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
