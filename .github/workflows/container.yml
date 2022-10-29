@@ -28,8 +28,6 @@ jobs:
           echo "*** LS"
           ls -l
           west update
-          export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
-          export ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-0.15.1/
           cd zephyr
 
       - name: Checkout
@@ -41,6 +39,8 @@ jobs:
       - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
         run: |
           echo "*** BUILD"
+          export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+          export ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-0.15.1/
           echo "*** LS"
           ls -l
           cd nfed
