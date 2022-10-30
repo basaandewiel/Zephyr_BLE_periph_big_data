@@ -6,27 +6,14 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        sample: [blinky]
-        target: [circuitdojo_feather_nrf9160_ns]
     steps:
       - uses: grandcentrix/actions-zephyr-sdk@latest
         with:
           url: https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.14.2/zephyr-sdk-0.14.2_linux-x86_64_minimal.tar.gz
           toolchains: x86_64-zephyr-elf
 
-#      - name: Set variables
-#        working-directory: nfed
-#        id: vars
-#        run: |
-#            echo "::set-output name=branch::${GITHUB_REF#refs/*/}"
-#             echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
       - name: InstallWestWorkspace
-#        working-directory: nfed
         run: |
-          cd
           echo "***PWD"
           pwd
           echo "***LS"
@@ -42,22 +29,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          path: nfed
 
-      - name: Build ${{ matrix.sample }} for ${{ matrix.target }}
-        working-directory: nfed
+      - name: Build_repo
         run: |
           echo "***PWD"
           pwd
           echo "***LS"
           ls
-          west build -b ${{ matrix.target }} -s samples/${{ matrix.sample }} -p
-          mkdir -p .out
-          cp build/zephyr/app_update.bin .out/${{ matrix.sample }}_${{ matrix.target }}_app_update.bin
-          cp build/zephyr/merged.hex .out/${{ matrix.sample }}_${{ matrix.target }}_merged.hex
+          west build -b qemu_x86
 
-      - name: Archive firmware
-        uses: actions/upload-artifact@v2
-        with:
-          name: nfed_${{ steps.vars.outputs.branch }}_${{ steps.vars.outputs.sha_short }}
-          path: .out/
