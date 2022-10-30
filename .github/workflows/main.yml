@@ -14,15 +14,16 @@ jobs:
 
       - name: InstallWestWorkspace
         run: |
+          cd ${{github.workspace}}
           echo "***PWD"
           pwd
           echo "***LS"
           ls
           echo "***pip3 isntall west"
-          pip3 install west
-          west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 ncs
-          cd ncs
-          west update
+#         pip3 install west
+#         west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 ncs
+#          cd ncs
+#          west update
       #    pip3 install -r ../zephyr/scripts/requirements-base.txt
 
       - name: Checkout
