@@ -15,7 +15,7 @@ jobs:
       - name: InstallWestWorkspace
         run: |
           cd ${{github.workspace}}
-          cd
+          cd /home/runner
           echo "***PWD"
           pwd
           echo "***LS"
