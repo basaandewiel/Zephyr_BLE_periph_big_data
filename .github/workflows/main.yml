@@ -25,7 +25,7 @@ jobs:
           ls
           west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 /home/runner/work
           west update
-          cd /home/runner
+          cd /home/runner/work
           echo "***PWD"
           pwd
           echo "***LS"
