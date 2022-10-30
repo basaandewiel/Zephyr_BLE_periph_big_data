@@ -14,21 +14,16 @@ jobs:
 
       - name: InstallWestWorkspace
         run: |
-          cd ${{github.workspace}}
-          cd /home/runner
-          echo "***PWD"
-          pwd
-          echo "***LS"
-          ls
           echo "***pip3 install west"
           pip3 install west
+
+          cd ${{github.workspace}}
+          cd ..
           echo "***PWD"
           pwd
           echo "***LS"
           ls
-          cd /home/runner
-          west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 ncs
-          cd /home/runner/ncs
+          west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1
           west update
       #    pip3 install -r ../zephyr/scripts/requirements-base.txt
 
@@ -36,6 +31,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          path: /home/runner/ncs/
 
       - name: Build_repo
         run: |
