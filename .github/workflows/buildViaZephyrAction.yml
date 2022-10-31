@@ -7,7 +7,7 @@ on:
   schedule:
   - cron: "0 19 * * 1-5"
 jobs:
-  installZephyr:
+  installZephyrAndBuild:
     runs-on: ubuntu-latest
     steps:
       - uses: grandcentrix/actions-zephyr-sdk@latest
@@ -24,27 +24,16 @@ jobs:
           west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 /home/runner/work
           west update
           cd /home/runner/work
-          echo "***PWD"
-          pwd
-          echo "***LS"
-          ls
           pip3 install -r zephyr/scripts/requirements-base.txt
           sudo apt install --no-install-recommends cmake ninja-build  
 
-  buildTargets:
-    needs: installZephyr
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [qemu_x86, thingy91_nrf9160_ns]
-    steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Build_repo
+      - name: BuildTargets
         run: |
-          west build -b ${{ matrix.target }}
-#          west build -b qemu_x86
+          west build -b qemu_x86
+          west build -b thingy91_nrf9160_ns
 
