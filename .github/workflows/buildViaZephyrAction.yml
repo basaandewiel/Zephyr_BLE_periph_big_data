@@ -1,11 +1,17 @@
 name: BuildViaZephyrAction
 
-#on: [push, pull_request, workflow_dispatch]
-on: workflow_dispatch
-
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+  - cron: "0 19 * * 1-5"
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [qemu_x86, thingy91_nrf9160_ns]
     steps:
       - uses: grandcentrix/actions-zephyr-sdk@latest
         with:
@@ -35,5 +41,6 @@ jobs:
 
       - name: Build_repo
         run: |
-          west build -b qemu_x86
+          west build -b ${{ matrix.target }}
+#          west build -b qemu_x86
 
