@@ -22,8 +22,8 @@ jobs:
           
           cd ${{github.workspace}}
           cd ..
-          west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 /home/runner/work
-          #west init -m https://github.com/nrfconnect/sdk-nrf /home/runner/work
+          #west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.1.1 /home/runner/work
+          west init -m https://github.com/nrfconnect/sdk-nrf /home/runner/work
           cd /home/runner/work
           west update
           pip3 install -r zephyr/scripts/requirements-base.txt
@@ -64,14 +64,5 @@ jobs:
       #- name: Setup upterm session
       #  uses: lhotari/action-upterm@v1
 
-      - name: RunTwister
-        working-directory: repototest
-        run: |
-          #pip install tabulate
-          pip install ply
-          #next line necessary to build for native_posix
-          sudo apt install gcc-multilib
-          # in sample.yaml is indicated that integration tests will use native_posix
-          /home/runner/work/zephyr/scripts/twister -v --integration  -T ./
 
         
