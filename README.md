@@ -1,4 +1,4 @@
-![Build qemu_x86](https://github.com/basaandewiel/Zephyr_BLE_periph_big_data/actions/workflows/InstallZephyrSDKBuildTest.yml.yml/badge.svg)
+![Build qemu_x86](https://github.com/basaandewiel/Zephyr_BLE_periph_big_data/actions/workflows/InstallZephyrSDKBuildTest.yml/badge.svg)
 
 
 # Zephyr_BLE_periph_big_data
