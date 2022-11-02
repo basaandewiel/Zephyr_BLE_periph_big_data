@@ -58,7 +58,7 @@ jobs:
           west build --pristine -b qemu_x86
           #next line gives error 'no module named 'cbor2''
           pip install cbor2
-          west build --pristine -b thingy91_nrf9160_ns
+          west build --pristine -b arduino_nano_33_ble
 
           # used for debugging via SSH
       #- name: Setup upterm session
