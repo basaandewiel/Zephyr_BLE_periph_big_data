@@ -1,3 +1,6 @@
+![Build qemu_x86](https://github.com/basaandewiel/Zephyr_BLE_periph_big_data/actions/workflows/InstallZephyrSDKBuildTest.yml.yml/badge.svg)
+
+
 # Zephyr_BLE_periph_big_data
 Bluetooth peripheral (server side) - Zephyr - sends big amount of data splitted into chunks
 This application can be used together with
