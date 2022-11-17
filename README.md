@@ -9,7 +9,7 @@ This application can be used together with
 
 # What is does
 The peripheral sends BLE advertising packets during a certain amount of time every 100msec (default inverval of Zephyr).
-* When there is BLE device connected after this period of sending advertisements, the peripheral goes into sleep mode for a certain period of time to conserve power.
+* When there is no BLE device connected after this period of sending advertisements, the peripheral goes into sleep mode for a certain period of time to conserve power.
 * When the sleep period is over, it starts again sending BLE advertisements during a certain amount of time.
  * etc. etc.
 
